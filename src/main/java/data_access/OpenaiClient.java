@@ -50,13 +50,11 @@ public class OpenaiClient implements OpenAiGateway {
         if (apiKey.isBlank()) {
             return OpenAiResponse.failure("OPENAI_ADAPTER_KEY is not set.");
         }
-        String body = "{"
-                + "\"model\":" + jsonString(request.getModel().trim())
-                + ",\"messages\":[{\"role\":\"user\",\"content\":" + jsonString(request.getUserMessage()) + "}]"
-                + "}";
+        String model = request.getModel().trim();
+        String body = requestBody(request, model);
         HttpRequest httpRequest = HttpRequest.newBuilder()
-                .uri(URI.create(chatCompletionsUrl()))
-                .timeout(Duration.ofSeconds(60))
+                .uri(URI.create(requestUrl(model)))
+                .timeout(Duration.ofSeconds(300))
                 .header("Authorization", "Bearer " + apiKey)
                 .header("Content-Type", "application/json")
                 .POST(HttpRequest.BodyPublishers.ofString(body))
@@ -72,6 +70,9 @@ public class OpenaiClient implements OpenAiGateway {
             }
             String content = extractString(response.body(), "content");
             if (content == null) {
+                content = extractString(response.body(), "text");
+            }
+            if (content == null) {
                 return OpenAiResponse.failure("The model returned no text.");
             }
             return OpenAiResponse.success(content);
@@ -81,6 +82,48 @@ public class OpenaiClient implements OpenAiGateway {
             Thread.currentThread().interrupt();
             return OpenAiResponse.failure("The model request was interrupted.");
         }
+    }
+
+    private String requestUrl(String model) {
+        if (model.startsWith("gemini-")) {
+            return serviceRoot() + "/v1beta/models/" + model + ":generateContent";
+        }
+        if (model.startsWith("claude-")) {
+            return serviceRoot() + "/v1/messages";
+        }
+        return chatCompletionsUrl();
+    }
+
+    private String requestBody(OpenAiRequest request, String model) {
+        String effort = request.getEffort() == null ? "" : request.getEffort().trim().toLowerCase();
+        if (model.startsWith("gemini-")) {
+            String level = effort.isEmpty() ? "MEDIUM" : effort.toUpperCase();
+            return "{\"model\":" + jsonString(model)
+                    + ",\"contents\":[{\"role\":\"user\",\"parts\":[{\"text\":" + jsonString(request.getUserMessage()) + "}]}],"
+                    + "\"generationConfig\":{\"thinkingConfig\":{\"thinkingLevel\":" + jsonString(level) + "}}}";
+        }
+        if (model.startsWith("claude-")) {
+            String selected = effort.isEmpty() ? "medium" : effort;
+            return "{\"model\":" + jsonString(model)
+                    + ",\"max_tokens\":16000,\"thinking\":{\"type\":\"adaptive\"}"
+                    + ",\"output_config\":{\"effort\":" + jsonString(selected) + "}"
+                    + ",\"messages\":[{\"role\":\"user\",\"content\":" + jsonString(request.getUserMessage()) + "}]}";
+        }
+        String effortField = effort.isEmpty() ? "" : ",\"reasoning_effort\":" + jsonString(effort);
+        return "{\"model\":" + jsonString(model)
+                + effortField
+                + ",\"messages\":[{\"role\":\"user\",\"content\":" + jsonString(request.getUserMessage()) + "}]}";
+    }
+
+    private String serviceRoot() {
+        String root = baseUrl;
+        if (root.endsWith("/chat/completions")) {
+            root = root.substring(0, root.length() - "/chat/completions".length());
+        }
+        if (root.endsWith("/v1")) {
+            root = root.substring(0, root.length() - "/v1".length());
+        }
+        return root;
     }
 
     private String chatCompletionsUrl() {
