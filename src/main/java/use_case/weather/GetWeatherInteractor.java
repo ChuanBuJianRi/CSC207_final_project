@@ -1,68 +1,67 @@
 package use_case.weather;
 
 import entity.WeatherReport;
+import java.util.Comparator;
+import java.util.List;
+import java.util.stream.Collectors;
 
-import java.time.LocalDate;
-import java.time.format.DateTimeParseException;
-
-/**
- * Validates input and coordinates a weather query.
- */
 public class GetWeatherInteractor implements GetWeatherInputBoundary {
     private final WeatherDataAccessInterface weatherDataAccess;
     private final GetWeatherOutputBoundary outputBoundary;
 
-    public GetWeatherInteractor(
-            WeatherDataAccessInterface weatherDataAccess,
-            GetWeatherOutputBoundary outputBoundary) {
+    public GetWeatherInteractor(WeatherDataAccessInterface weatherDataAccess,
+                                GetWeatherOutputBoundary outputBoundary) {
         this.weatherDataAccess = weatherDataAccess;
         this.outputBoundary = outputBoundary;
     }
 
     @Override
     public void execute(GetWeatherInputData inputData) {
-        String city = inputData.getCity() == null
-                ? "" : inputData.getCity().trim();
-        String dateText = inputData.getDate() == null
-                ? "" : inputData.getDate().trim();
+        String city = clean(inputData.getCity());
+        String province = clean(inputData.getProvince());
+        String country = clean(inputData.getCountry());
 
         if (city.isEmpty()) {
-            outputBoundary.prepareFailView("Enter a city.");
+            outputBoundary.prepareFailView("Enter a city, for example Toronto.");
             return;
         }
-
-        if (dateText.isEmpty()) {
-            outputBoundary.prepareFailView("Enter a date.");
+        if (country.isEmpty()) {
+            outputBoundary.prepareFailView("Enter a country, for example Canada.");
             return;
         }
-
-        LocalDate date;
-        try {
-            date = LocalDate.parse(dateText);
-        } catch (DateTimeParseException exception) {
+        if (city.contains(",") || province.contains(",") || country.contains(",")) {
             outputBoundary.prepareFailView(
-                    "Enter a valid date in YYYY-MM-DD format.");
+                    "Enter city, province/state, and country in separate fields.");
             return;
         }
 
-        WeatherReport report;
+        List<WeatherReport> reports;
         try {
-            report = weatherDataAccess.getWeather(city, date);
+            reports = weatherDataAccess.getForecast(city, province, country);
         } catch (IllegalStateException exception) {
             String message = exception.getMessage();
-            if (message == null || message.isBlank()) {
-                message = "Could not retrieve weather.";
-            }
-            outputBoundary.prepareFailView(message);
+            outputBoundary.prepareFailView(message == null || message.isBlank()
+                    ? "Could not load the forecast. Please try again." : message);
             return;
         }
 
-        GetWeatherOutputData outputData = new GetWeatherOutputData(
-                report.getCity(),
-                report.getDate(),
-                report.getTemperature(),
-                report.getCondition());
+        if (reports == null || reports.isEmpty()) {
+            outputBoundary.prepareFailView("No forecast is available for this location.");
+            return;
+        }
 
-        outputBoundary.prepareSuccessView(outputData);
+        List<GetWeatherOutputData.Day> days = reports.stream()
+                .sorted(Comparator.comparing(WeatherReport::getDate))
+                .limit(7)
+                .map(report -> new GetWeatherOutputData.Day(
+                        report.getDate(), report.getTemperature(), report.getCondition()))
+                .collect(Collectors.toList());
+
+        outputBoundary.prepareSuccessView(
+                new GetWeatherOutputData(reports.get(0).getCity(), days));
+    }
+
+    private static String clean(String value) {
+        return value == null ? "" : value.trim();
     }
 }
