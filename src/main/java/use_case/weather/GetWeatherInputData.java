@@ -1,22 +1,25 @@
 package use_case.weather;
 
-/**
- * Input for a weather query.
- */
 public class GetWeatherInputData {
     private final String city;
-    private final String date;
+    private final String province;
+    private final String country;
 
-    public GetWeatherInputData(String city, String date) {
+    public GetWeatherInputData(String city, String province, String country) {
         this.city = city;
-        this.date = date;
+        this.province = province;
+        this.country = country;
     }
 
     public String getCity() {
         return city;
     }
 
-    public String getDate() {
-        return date;
+    public String getProvince() {
+        return province;
+    }
+
+    public String getCountry() {
+        return country;
     }
 }

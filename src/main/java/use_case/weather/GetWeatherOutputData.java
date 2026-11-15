@@ -1,37 +1,46 @@
 package use_case.weather;
 
 import java.time.LocalDate;
+import java.util.List;
 
-/**
- * Output of a successful weather query.
- */
 public class GetWeatherOutputData {
-    private final String city;
-    private final LocalDate date;
-    private final double temperature;
-    private final String condition;
+    private final String location;
+    private final List<Day> days;
 
-    public GetWeatherOutputData(String city, LocalDate date,
-                                double temperature, String condition) {
-        this.city = city;
-        this.date = date;
-        this.temperature = temperature;
-        this.condition = condition;
+    public GetWeatherOutputData(String location, List<Day> days) {
+        this.location = location;
+        this.days = List.copyOf(days);
     }
 
-    public String getCity() {
-        return city;
+    public String getLocation() {
+        return location;
     }
 
-    public LocalDate getDate() {
-        return date;
+    public List<Day> getDays() {
+        return days;
     }
 
-    public double getTemperature() {
-        return temperature;
-    }
+    public static final class Day {
+        private final LocalDate date;
+        private final double temperature;
+        private final String condition;
 
-    public String getCondition() {
-        return condition;
+        public Day(LocalDate date, double temperature, String condition) {
+            this.date = date;
+            this.temperature = temperature;
+            this.condition = condition;
+        }
+
+        public LocalDate getDate() {
+            return date;
+        }
+
+        public double getTemperature() {
+            return temperature;
+        }
+
+        public String getCondition() {
+            return condition;
+        }
     }
 }
