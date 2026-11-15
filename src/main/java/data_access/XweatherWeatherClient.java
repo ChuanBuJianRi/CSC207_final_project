@@ -12,6 +12,7 @@ import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.nio.charset.StandardCharsets;
+import java.time.Clock;
 import java.time.DateTimeException;
 import java.time.Duration;
 import java.time.LocalDate;
@@ -25,15 +26,25 @@ import java.util.TreeMap;
 
 public class XweatherWeatherClient implements WeatherDataAccessInterface {
     private static final String BASE_URL = "https://data.api.xweather.com/forecasts/";
+    private final String baseUrl;
+    private final Clock clock;
     private final String clientId;
     private final String clientSecret;
     private final HttpClient httpClient;
 
     public XweatherWeatherClient(String clientId, String clientSecret) {
+        this(clientId, clientSecret, BASE_URL,
+                HttpClient.newBuilder().connectTimeout(Duration.ofSeconds(15)).build(),
+                Clock.systemUTC());
+    }
+
+    XweatherWeatherClient(String clientId, String clientSecret,
+                          String baseUrl, HttpClient httpClient, Clock clock) {
         this.clientId = clientId == null ? "" : clientId.trim();
         this.clientSecret = clientSecret == null ? "" : clientSecret.trim();
-        httpClient = HttpClient.newBuilder()
-                .connectTimeout(Duration.ofSeconds(15)).build();
+        this.baseUrl = baseUrl.endsWith("/") ? baseUrl : baseUrl + "/";
+        this.httpClient = httpClient;
+        this.clock = clock;
     }
 
     public static XweatherWeatherClient fromEnvironment() {
@@ -48,7 +59,7 @@ public class XweatherWeatherClient implements WeatherDataAccessInterface {
         }
 
         String location = city + (province.isBlank() ? "" : "," + province) + "," + country;
-        String url = BASE_URL + encode(location)
+        String url = baseUrl + encode(location)
                 + "?filter=day&limit=7"
                 + "&client_id=" + encode(clientId)
                 + "&client_secret=" + encode(clientSecret);
@@ -104,7 +115,7 @@ public class XweatherWeatherClient implements WeatherDataAccessInterface {
             String location = String.join(", ", parts);
 
             ZoneId zone = ZoneId.of(result.getJSONObject("profile").getString("tz"));
-            LocalDate today = LocalDate.now(zone);
+            LocalDate today = LocalDate.now(clock.withZone(zone));
             JSONArray periods = result.getJSONArray("periods");
             Map<LocalDate, WeatherReport> days = new TreeMap<>();
 
