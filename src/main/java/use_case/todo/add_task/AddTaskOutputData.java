@@ -1,4 +1,15 @@
 package use_case.todo.add_task;
 
-public class AddTaskOutputData {
+import entity.Task;
+
+public final class AddTaskOutputData {
+    private final Task task;
+
+    public AddTaskOutputData(Task task) {
+        this.task = task;
+    }
+
+    public Task getTask() {
+        return task;
+    }
 }
