@@ -1,13 +1,19 @@
 package app;
 
+import data_access.InMemoryTaskDAO;
 import data_access.OpenaiClient;
 import data_access.VectorDataAccess;
 import interface_adapter.agent.AgentController;
 import interface_adapter.agent.AgentPresenter;
 import interface_adapter.agent.AgentViewModel;
+import interface_adapter.todo.TodoController;
+import interface_adapter.todo.TodoPresenter;
+import interface_adapter.todo.TodoViewModel;
 import use_case.agent.AgentInteractor;
+import use_case.todo.add_task.AddTaskInteractor;
 import view.AgentPanel;
 import view.MainFrame;
+import view.TodoPanel;
 
 public class AppBuilder {
     public MainFrame build() {
@@ -19,6 +25,13 @@ public class AppBuilder {
                 VectorDataAccess.fromEnvironment());
         AgentController agentController = new AgentController(agentInteractor);
         AgentPanel agentPanel = new AgentPanel(agentController, agentViewModel);
-        return new MainFrame(agentPanel);
+        return new MainFrame(agentPanel, buildTodoPanel());
+    }
+
+    private TodoPanel buildTodoPanel() {
+        TodoViewModel viewModel = new TodoViewModel();
+        TodoPresenter presenter = new TodoPresenter(viewModel);
+        AddTaskInteractor addTask = new AddTaskInteractor(new InMemoryTaskDAO(), presenter);
+        return new TodoPanel(new TodoController(addTask), viewModel);
     }
 }
