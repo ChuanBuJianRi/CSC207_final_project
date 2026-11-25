@@ -14,6 +14,8 @@ import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTextField;
 import java.awt.BorderLayout;
+import java.awt.event.ComponentAdapter;
+import java.awt.event.ComponentEvent;
 import java.beans.PropertyChangeEvent;
 
 public final class TodoPanel extends JPanel {
@@ -48,11 +50,21 @@ public final class TodoPanel extends JPanel {
         add(input, BorderLayout.NORTH);
         add(new JScrollPane(taskList), BorderLayout.CENTER);
         add(feedback, BorderLayout.SOUTH);
-        viewModel.addPropertyChangeListener(this::updateView);
+        viewModel.addPropertyChangeListener(event -> updateView(event, viewModel));
+        addComponentListener(new ComponentAdapter() {
+            @Override
+            public void componentShown(ComponentEvent event) {
+                controller.loadTasks();
+            }
+        });
     }
 
-    private void updateView(PropertyChangeEvent event) {
-        if (TodoViewModel.TASK_ADDED.equals(event.getPropertyName())) {
+    private void updateView(PropertyChangeEvent event, TodoViewModel viewModel) {
+        if (TodoViewModel.TASKS_LOADED.equals(event.getPropertyName())) {
+            tasks.clear();
+            tasks.addAll(viewModel.getTasks());
+            feedback.setText(" ");
+        } else if (TodoViewModel.TASK_ADDED.equals(event.getPropertyName())) {
             tasks.addElement((Task) event.getNewValue());
             titleField.setText("");
             feedback.setText("Task added.");

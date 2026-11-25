@@ -15,7 +15,8 @@ public interface TaskDataAccessInterface {
     void save(Task task);
 
     /**
-     * Returns a snapshot of the stored tasks in creation order.
+     * Returns a snapshot of the stored tasks in creation order. Throws an
+     * IllegalStateException if the tasks cannot be read.
      */
     List<Task> findAll();
 }
