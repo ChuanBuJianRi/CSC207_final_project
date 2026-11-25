@@ -1,4 +1,7 @@
 package use_case.todo.list_tasks;
 
-public class ListTasksInputData {
+/**
+ * A request to load all tasks. The use case has no filters.
+ */
+public final class ListTasksInputData {
 }

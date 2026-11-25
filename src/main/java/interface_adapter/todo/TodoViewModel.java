@@ -8,6 +8,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 public final class TodoViewModel {
+    public static final String TASKS_LOADED = "tasksLoaded";
     public static final String TASK_ADDED = "taskAdded";
     public static final String ERROR = "error";
 
@@ -25,6 +26,12 @@ public final class TodoViewModel {
     void taskAdded(Task task) {
         tasks.add(task);
         changes.firePropertyChange(TASK_ADDED, null, task);
+    }
+
+    void replaceTasks(List<Task> loadedTasks) {
+        tasks.clear();
+        tasks.addAll(loadedTasks);
+        changes.firePropertyChange(TASKS_LOADED, null, loadedTasks);
     }
 
     void showError(String message) {
