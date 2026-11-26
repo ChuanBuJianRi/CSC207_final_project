@@ -10,6 +10,7 @@ import use_case.todo.add_task.AddTaskOutputBoundary;
 import use_case.todo.add_task.AddTaskOutputData;
 
 import java.util.List;
+import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -59,6 +60,11 @@ class AddTaskInteractorTest {
             @Override
             public void save(Task task) {
                 throw new IllegalStateException("Store is unavailable");
+            }
+
+            @Override
+            public Optional<Task> markCompleted(String taskId) {
+                throw new AssertionError("Must not attempt to complete a task.");
             }
 
             @Override

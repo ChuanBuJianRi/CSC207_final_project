@@ -6,6 +6,7 @@ import use_case.todo.TaskDataAccessInterface;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 /**
  * Stores tasks for the lifetime of this DAO instance.
@@ -23,5 +24,16 @@ public final class InMemoryTaskDAO implements TaskDataAccessInterface {
     @Override
     public synchronized List<Task> findAll() {
         return List.copyOf(tasks.values());
+    }
+
+    @Override
+    public synchronized Optional<Task> markCompleted(String taskId) {
+        Task task = tasks.computeIfPresent(taskId, (id, current) -> {
+            if (current.isCompleted()) {
+                return current;
+            }
+            return new Task(id, current.getTitle(), true);
+        });
+        return Optional.ofNullable(task);
     }
 }

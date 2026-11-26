@@ -10,6 +10,7 @@ import java.util.List;
 public final class TodoViewModel {
     public static final String TASKS_LOADED = "tasksLoaded";
     public static final String TASK_ADDED = "taskAdded";
+    public static final String TASK_COMPLETED = "taskCompleted";
     public static final String ERROR = "error";
 
     private final PropertyChangeSupport changes = new PropertyChangeSupport(this);
@@ -32,6 +33,11 @@ public final class TodoViewModel {
         tasks.clear();
         tasks.addAll(loadedTasks);
         changes.firePropertyChange(TASKS_LOADED, null, loadedTasks);
+    }
+
+    void taskCompleted(Task completedTask) {
+        tasks.replaceAll(task -> task.getId().equals(completedTask.getId()) ? completedTask : task);
+        changes.firePropertyChange(TASK_COMPLETED, null, completedTask);
     }
 
     void showError(String message) {
