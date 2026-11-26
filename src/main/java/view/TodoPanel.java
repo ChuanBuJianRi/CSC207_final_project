@@ -13,6 +13,7 @@ import javax.swing.JList;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTextField;
+import javax.swing.ListSelectionModel;
 import java.awt.BorderLayout;
 import java.awt.event.ComponentAdapter;
 import java.awt.event.ComponentEvent;
@@ -21,6 +22,7 @@ import java.beans.PropertyChangeEvent;
 public final class TodoPanel extends JPanel {
     private final JTextField titleField = new JTextField(24);
     private final DefaultListModel<Task> tasks = new DefaultListModel<>();
+    private final JList<Task> taskList = new JList<>(tasks);
     private final JLabel feedback = new JLabel(" ");
 
     public TodoPanel(TodoController controller, TodoViewModel viewModel) {
@@ -39,7 +41,7 @@ public final class TodoPanel extends JPanel {
         input.add(addButton, BorderLayout.EAST);
 
         viewModel.getTasks().forEach(tasks::addElement);
-        JList<Task> taskList = new JList<>(tasks);
+        taskList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
         taskList.getAccessibleContext().setAccessibleName("Tasks");
         taskList.setVisibleRowCount(8);
         DefaultListCellRenderer renderer = new DefaultListCellRenderer();
@@ -47,9 +49,21 @@ public final class TodoPanel extends JPanel {
                 renderer.getListCellRendererComponent(list, task.getTitle()
                         + (task.isCompleted() ? " (completed)" : " (pending)"), index, selected, focused));
 
+        JButton completeButton = new JButton("Complete");
+        completeButton.setEnabled(false);
+        taskList.addListSelectionListener(event -> {
+            Task selected = taskList.getSelectedValue();
+            completeButton.setEnabled(selected != null && !selected.isCompleted());
+        });
+        completeButton.addActionListener(event -> controller.completeTask(taskList.getSelectedValue().getId()));
+
+        JPanel actions = new JPanel(new BorderLayout(8, 0));
+        actions.add(feedback, BorderLayout.CENTER);
+        actions.add(completeButton, BorderLayout.EAST);
+
         add(input, BorderLayout.NORTH);
         add(new JScrollPane(taskList), BorderLayout.CENTER);
-        add(feedback, BorderLayout.SOUTH);
+        add(actions, BorderLayout.SOUTH);
         viewModel.addPropertyChangeListener(event -> updateView(event, viewModel));
         addComponentListener(new ComponentAdapter() {
             @Override
@@ -69,6 +83,12 @@ public final class TodoPanel extends JPanel {
             titleField.setText("");
             feedback.setText("Task added.");
             titleField.requestFocusInWindow();
+        } else if (TodoViewModel.TASK_COMPLETED.equals(event.getPropertyName())) {
+            int selection = taskList.getSelectedIndex();
+            tasks.clear();
+            tasks.addAll(viewModel.getTasks());
+            taskList.setSelectedIndex(selection);
+            feedback.setText("Task completed.");
         } else if (TodoViewModel.ERROR.equals(event.getPropertyName())) {
             feedback.setText((String) event.getNewValue());
         }

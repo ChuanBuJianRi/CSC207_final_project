@@ -12,6 +12,7 @@ import interface_adapter.todo.TodoViewModel;
 import use_case.agent.AgentInteractor;
 import use_case.todo.TaskDataAccessInterface;
 import use_case.todo.add_task.AddTaskInteractor;
+import use_case.todo.complete_task.CompleteTaskInteractor;
 import use_case.todo.list_tasks.ListTasksInteractor;
 import view.AgentPanel;
 import view.MainFrame;
@@ -36,6 +37,7 @@ public class AppBuilder {
         TaskDataAccessInterface taskDataAccess = new InMemoryTaskDAO();
         AddTaskInteractor addTask = new AddTaskInteractor(taskDataAccess, presenter);
         ListTasksInteractor listTasks = new ListTasksInteractor(taskDataAccess, presenter);
-        return new TodoPanel(new TodoController(addTask, listTasks), viewModel);
+        CompleteTaskInteractor completeTask = new CompleteTaskInteractor(taskDataAccess, presenter);
+        return new TodoPanel(new TodoController(addTask, listTasks, completeTask), viewModel);
     }
 }

@@ -10,6 +10,7 @@ import use_case.todo.list_tasks.ListTasksOutputBoundary;
 import use_case.todo.list_tasks.ListTasksOutputData;
 
 import java.util.List;
+import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
@@ -45,6 +46,11 @@ class ListTasksInteractorTest {
             @Override
             public void save(Task task) {
                 throw new AssertionError("Loading tasks must not write to storage.");
+            }
+
+            @Override
+            public Optional<Task> markCompleted(String taskId) {
+                throw new AssertionError("Must not attempt to complete a task.");
             }
 
             @Override

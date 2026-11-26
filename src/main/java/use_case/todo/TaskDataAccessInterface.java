@@ -3,6 +3,7 @@ package use_case.todo;
 import entity.Task;
 
 import java.util.List;
+import java.util.Optional;
 
 /**
  * Storage operations shared by the todo use cases.
@@ -19,4 +20,11 @@ public interface TaskDataAccessInterface {
      * IllegalStateException if the tasks cannot be read.
      */
     List<Task> findAll();
+
+    /**
+     * Marks an existing task complete and returns its current state.
+     * Repeating the operation returns the already completed task.
+     * Returns empty for an unknown ID. Throws IllegalStateException on storage failure.
+     */
+    Optional<Task> markCompleted(String taskId);
 }
