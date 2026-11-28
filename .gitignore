@@ -8,6 +8,13 @@ credentials.json
 **/application-local.properties
 **/application-local.yml
 
+# Local application data
+data/
+*.db
+*.db-journal
+*.db-wal
+*.db-shm
+
 # Java
 *.class
 *.log

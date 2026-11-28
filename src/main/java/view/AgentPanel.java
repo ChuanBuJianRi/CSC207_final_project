@@ -17,9 +17,6 @@ import java.awt.FlowLayout;
 import java.util.Hashtable;
 
 public class AgentPanel extends JPanel {
-    private static final String[] MODELS = {"gpt-6.1-sol", "gemini-3.8-flash", "claude-opus-5-5"};
-    private static final String[] EFFORTS = {"low", "medium", "high"};
-
     private final AgentController agentController;
     private final AgentViewModel agentViewModel;
     private final JComboBox<String> modelBox;
@@ -31,7 +28,7 @@ public class AgentPanel extends JPanel {
     public AgentPanel(AgentController agentController, AgentViewModel agentViewModel) {
         this.agentController = agentController;
         this.agentViewModel = agentViewModel;
-        this.modelBox = new JComboBox<>(MODELS);
+        this.modelBox = new JComboBox<>(AgentModels.MODELS);
         this.modelBox.setEditable(true);
         this.effortSlider = effortSlider();
         this.input = new JTextField(24);
@@ -57,7 +54,7 @@ public class AgentPanel extends JPanel {
     private void send() {
         String userMessage = input.getText();
         String model = String.valueOf(modelBox.getEditor().getItem()).trim();
-        String effort = EFFORTS[effortSlider.getValue()];
+        String effort = AgentModels.EFFORTS[effortSlider.getValue()];
         sendButton.setEnabled(false);
         new SwingWorker<Void, Void>() {
             @Override
@@ -80,7 +77,7 @@ public class AgentPanel extends JPanel {
     }
 
     private JSlider effortSlider() {
-        JSlider slider = new JSlider(0, EFFORTS.length - 1, 1);
+        JSlider slider = new JSlider(0, AgentModels.EFFORTS.length - 1, 1);
         slider.setMajorTickSpacing(1);
         slider.setPaintTicks(true);
         slider.setPaintLabels(true);

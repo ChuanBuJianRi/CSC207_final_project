@@ -8,7 +8,7 @@ This folder is the workspace for the CSC207H1F 20269 (All Sections) Software Des
 
 The course requires a **Java program with a Java Swing GUI**. A web app will not be approved. JavaFX is allowed only after the course team explicitly approves a request. The program must attempt to follow Clean Architecture and SOLID, use at least one external API, and persist data (through an API, a file, or a database). There must be at least two domain entities. Each team member must complete at least one full user story and lead at least one MVP use case, including most of that use case’s code.
 
-The product itself is not chosen yet. Team name, members, domain, user stories, entities, API, persistence method, JDK, and build tool are still unconfirmed. Do not invent them. Record real decisions in the root README when the team makes them.
+The product is now a Java Swing study app called **Desktop Assistant** with Agent, Todo and Notes tabs. Notes and agent memories persist in a local SQLite database (`data/notes.db`, override with `NOTES_DB_PATH`); the agent uses native tool calling for notes. Team membership, course dates, and presentation details are still unconfirmed — do not invent them; record real decisions in the root README and `docs/TeamContract.md`.
 
 ## Process
 
@@ -42,10 +42,21 @@ The program lives at the repository root. Do not create a `code` folder.
 | --- | --- |
 | `src` | Maven source and tests. Java packages are under `src/main/java` and `src/test/java`. |
 | `docs` | Notes for the program, including agent tool descriptions. |
-| `database` | Database notes. The schema is still undecided; do not invent tables here. |
+| `database` | Local SQLite schema and reset/backup notes. Keep `database/README.md` in sync with `data_access/SqliteDatabase.java`. |
 | `task_requirements` | Course PDFs, the README template, and the implementation plan. Do not put the program here. |
 | `pom.xml` | Maven build file. |
 
-`README.md`, `TeamContract.md`, and `checkstyle.xml` also stay at the repository root.
+`README.md` and `checkstyle.xml` also stay at the repository root; the team contract is `docs/TeamContract.md`.
 
 If a new main folder is added later, record its purpose in this document before putting files in it.
+
+## Current implementation (2026-11-27)
+
+- **Agent**: chat with OpenAI/Gemini/Claude/DeepSeek protocols, local SQLite
+  memories, native tool calling.
+- **Todo**: in-memory add/list/complete flow.
+- **Notes**: Markdown editor with live preview, tags, search, local SQLite
+  persistence, and agent tools for list/read/create/update/delete.
+- **Calendar/Weather**: still empty scaffolds; the `Weather` branch has an
+  unmerged implementation.
+- Tests: `mvn test` (JDK 11+; no database server needed).
